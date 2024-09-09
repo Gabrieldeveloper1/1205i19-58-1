@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1e1e1e;
+            color: white;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #000;
+            border-radius: 0;
+            position: relative;
+        }
+
+        .chat-header {
+            background-color: #000;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .toggle-dark-mode {
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-dark-mode:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-body {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        .chat-message {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .chat-message .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #10a35f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+
+        .chat-message .message {
+            max-width: 75%;
+            background-color: #444;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: white;
+            position: relative;
+        }
+
+        .chat-message .message code {
+            display: block;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            margin-top: 10px;
+        }
+
+        .chat-message .copy-button {
+            margin-top: 5px;
+            background-color: #000;
+            padding: 5px 10px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+
+        .typing-indicator span {
+            display: block;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            animation: blink 1s infinite alternate;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes blink {
+            to {
+                opacity: 0.3;
+            }
+        }
+
+        .chat-footer {
+            padding: 20px;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-footer input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 50px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .chat-footer button {
+            margin-left: 10px;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-footer button:hover {
+            background-color: #0056b3;
+        }
+
+        ::-webkit-scrollbar {
+    width: 0.5rem;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(0, 255, 98);
+}
+::-webkit-scrollbar-track {
+    background: rgb(47, 51, 79);
+}
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="toggle-dark-mode" onclick="toggleDarkMode()">
+            </div>
+        </div>
+
+        <div class="chat-body" id="chat-body">
+            <div class="chat-message">
+                <div class="avatar"><img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/chatgpt-icon.png" alt="" style="width: 1000px; height: 40px; border-radius: 50%;"></div>
+                <div class="message">Olá! Como posso ajudar você hoje?</div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" placeholder="Digite sua mensagem..." id="chat-input">
+            <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+(function (_0xa9083a, _0x153bc1) {
+    const _0x397a9d = _0x1df4, _0x4de92c = _0xa9083a();
+    while (!![]) {
+        try {
+            const _0xc9e765 = -parseInt(_0x397a9d(0xdc)) / (-0xc44 + 0x1efd * 0x1 + -0x1 * 0x12b8) + parseInt(_0x397a9d(0xad)) / (0x8 * 0x278 + 0x197 * 0x7 + -0x7 * 0x469) + -parseInt(_0x397a9d(0x71)) / (0x2 * 0x65d + 0x795 + -0x144c) + parseInt(_0x397a9d(0x79)) / (-0x16ec + 0x1 * 0x4b3 + -0xcb * -0x17) * (parseInt(_0x397a9d(0xba)) / (-0x1fad + 0xa * 0x2bd + 0x450)) + -parseInt(_0x397a9d(0xf2)) / (0x427 * 0x5 + -0x100e + -0xb * 0x6d) + -parseInt(_0x397a9d(0xbc)) / (0x9f2 + -0xb9 * -0x1 + 0xc * -0xe3) * (parseInt(_0x397a9d(0xb2)) / (-0x11 * -0x159 + -0x15a6 + -0x1 * 0x13b)) + parseInt(_0x397a9d(0x9c)) / (-0xb15 + -0xd53 + 0x1871);
+            if (_0xc9e765 === _0x153bc1)
+                break;
+            else
+                _0x4de92c['push'](_0x4de92c['shift']());
+        } catch (_0x1ad203) {
+            _0x4de92c['push'](_0x4de92c['shift']());
+        }
+    }
+}(_0xc2ab, -0xc9 * -0x1890 + 0x1d * -0x3866 + 0x4932));
+function _0x1df4(_0x149ce0, _0x3c57b1) {
+    const _0x20338e = _0xc2ab();
+    return _0x1df4 = function (_0x639abb, _0x266c52) {
+        _0x639abb = _0x639abb - (-0x47e + 0xd2a + 0x1 * -0x83e);
+        let _0x2f1f98 = _0x20338e[_0x639abb];
+        return _0x2f1f98;
+    }, _0x1df4(_0x149ce0, _0x3c57b1);
+}
+function _0xc2ab() {
+    const _0x365be0 = [
+        'writeText',
+        '2928qQGPec',
+        'includes',
+        'xgptv1.squ',
+        '\x20\x20\x20\x20\x20\x20\x20\x20<d',
+        'iteZa',
+        'Copiado!',
+        '-media/cha',
+        '<span></sp',
+        '5nNSiXX',
+        'themes/uxw',
+        '4991EvgQcI',
+        'tgpt-icon.',
+        'innerHTML',
+        'utton>\x0a\x20\x20\x20',
+        'n/json',
+        'ToClipboar',
+        'imgs/usuar',
+        'utton\x22\x20onc',
+        '<img\x20src=\x22',
+        'LYFT4RrXF2',
+        '</div>\x0a\x20\x20\x20',
+        'removeChil',
+        'order-radi',
+        '\x22\x20style=\x22w',
+        'appendChil',
+        'getElement',
+        'n></span>',
+        'PpfbN',
+        't:\x2040px;\x20b',
+        '\x20\x20\x20\x20\x20<div\x20',
+        'mAVwR',
+        '6TEfjyGAZh',
+        '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20',
+        'twZyu',
+        'areweb.app',
+        'and-social',
+        'button\x20cla',
+        'typing-ind',
+        'tuNbJ',
+        'er-radius:',
+        '<code>',
+        'https://ny',
+        '1222923EFYrur',
+        'cqzOM',
+        '</div>',
+        '40px;\x20bord',
+        'Erro:\x20',
+        'div',
+        '```',
+        'class=\x22mes',
+        'oHsys',
+        'sage\x22>',
+        '\x20Código</b',
+        'add',
+        'djCbO',
+        'ById',
+        'catch',
+        'json',
+        '\x20\x20<code>',
+        '0px;\x20heigh',
+        ';\x20height:\x20',
+        'createElem',
+        'resposta',
+        'ss=\x22copy-b',
+        '1943034EZiMGU',
+        'lwUjo',
+        'an><span><',
+        't=\x22\x22\x20style',
+        '=\x22avatar\x22>',
+        '3095157KnIzrg',
+        '\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20',
+        '\x2050%;\x22></d',
+        'chat-messa',
+        'icator',
+        'us:\x2050%;\x22>',
+        'MZkrD',
+        'd(\x27',
+        '6553148LxxXIy',
+        'Ikpi8oo2Fu',
+        'kcKdm',
+        'FQpal',
+        'iv>\x0a\x20\x20\x20\x20\x20\x20',
+        '\x20\x20\x20\x20\x20\x20\x20\x20\x20<',
+        'NYX-GPT-Hx',
+        'wing.com/w',
+        'chat-body',
+        'chat-input',
+        '</code>\x0a\x20\x20',
+        'Cutjj',
+        'ifGcq',
+        'value',
+        'dark-mode',
+        'WcaHu',
+        'match',
+        'https://ux',
+        'UIYzPCf',
+        'then',
+        'wqnDf',
+        'clipboard',
+        '/span><spa',
+        '\x27)\x22>Copiar',
+        'DsDpS',
+        'lick=\x22copy',
+        'ing/downlo',
+        '=\x22width:\x204',
+        'message\x22>',
+        'png\x22\x20alt=\x22',
+        'error',
+        'applicatio',
+        'scrollTop',
+        'p-content/',
+        'body',
+        '18323748eYMLQI',
+        'trim',
+        'iv\x20class=\x22',
+        '/gpt/pergu',
+        'GET',
+        'scrollHeig',
+        'smkwK',
+        'nta?',
+        'toggle',
+        'JvBYK',
+        'classList',
+        'idth:\x2040px',
+        'vPgKM',
+        'ad/brands-',
+        'ent',
+        '\x20\x20\x20\x20\x20\x20\x20\x20</',
+        'div>',
+        '58208JQshQd',
+        'io.svg\x22\x20al',
+        '<div\x20class',
+        'wqLQH'
+    ];
+    _0xc2ab = function () {
+        return _0x365be0;
+    };
+    return _0xc2ab();
+}
+function toggleDarkMode() {
+    const _0x24dc64 = _0x1df4, _0x41bfce = { 'mAVwR': _0x24dc64(0x87) };
+    document[_0x24dc64(0x9b)][_0x24dc64(0xa6)][_0x24dc64(0xa4)](_0x41bfce[_0x24dc64(0xd0)]);
+}
+async function sendMessage() {
+    const _0x255948 = _0x1df4, _0x55e61a = {
+            'iteZa': _0x255948(0x82),
+            'PpfbN': function (_0x399aaa, _0x2070dc) {
+                return _0x399aaa !== _0x2070dc;
+            },
+            'Cutjj': _0x255948(0x81),
+            'FQpal': _0x255948(0xe1),
+            'djCbO': _0x255948(0x74) + 'ge',
+            'JvBYK': _0x255948(0xd7) + _0x255948(0x75),
+            'kcKdm': _0x255948(0xb9) + _0x255948(0x6e) + _0x255948(0x8f) + _0x255948(0xcc),
+            'cqzOM': function (_0x18e8bb, _0xcb9153, _0xfafe5a) {
+                return _0x18e8bb(_0xcb9153, _0xfafe5a);
+            },
+            'oHsys': function (_0x34901c, _0x3c5e32) {
+                return _0x34901c + _0x3c5e32;
+            },
+            'twZyu': _0x255948(0xdb) + _0x255948(0xb4) + _0x255948(0xd4) + _0x255948(0x9f) + _0x255948(0xa3),
+            'smkwK': _0x255948(0xa0),
+            'MZkrD': _0x255948(0x7f) + _0x255948(0xd1) + _0x255948(0x7a) + _0x255948(0xc5) + _0x255948(0x8b),
+            'DsDpS': _0x255948(0x98) + _0x255948(0xc0),
+            'tuNbJ': function (_0x4e1465, _0x1a4036) {
+                return _0x4e1465(_0x1a4036);
+            },
+            'lwUjo': function (_0x2cd739, _0x564db3) {
+                return _0x2cd739(_0x564db3);
+            }
+        }, _0x951175 = document[_0x255948(0xcb) + _0x255948(0xe9)](_0x55e61a[_0x255948(0xb6)]), _0x36a1f1 = _0x951175[_0x255948(0x86)][_0x255948(0x9d)]();
+    if (_0x55e61a[_0x255948(0xcd)](_0x36a1f1, '')) {
+        const _0x124f5a = document[_0x255948(0xcb) + _0x255948(0xe9)](_0x55e61a[_0x255948(0x84)]), _0x3adabb = document[_0x255948(0xef) + _0x255948(0xaa)](_0x55e61a[_0x255948(0x7c)]);
+        _0x3adabb[_0x255948(0xa6)][_0x255948(0xe7)](_0x55e61a[_0x255948(0xe8)]), _0x3adabb[_0x255948(0xbe)] = _0x255948(0xaf) + _0x255948(0x70) + _0x255948(0xc4) + _0x255948(0xc2) + _0x255948(0xae) + _0x255948(0x6f) + _0x255948(0x94) + _0x255948(0xed) + _0x255948(0xce) + _0x255948(0xc8) + _0x255948(0x76) + _0x255948(0xc6) + _0x255948(0xd2) + _0x255948(0xb5) + _0x255948(0x9e) + _0x255948(0x95) + _0x36a1f1 + _0x255948(0xde), _0x124f5a[_0x255948(0xca) + 'd'](_0x3adabb), _0x951175[_0x255948(0x86)] = '', _0x124f5a[_0x255948(0x99)] = _0x124f5a[_0x255948(0xa1) + 'ht'];
+        const _0x53fcf0 = document[_0x255948(0xef) + _0x255948(0xaa)](_0x55e61a[_0x255948(0x7c)]);
+        _0x53fcf0[_0x255948(0xa6)][_0x255948(0xe7)](_0x55e61a[_0x255948(0xa5)]), _0x53fcf0[_0x255948(0xbe)] = _0x55e61a[_0x255948(0x7b)], _0x124f5a[_0x255948(0xca) + 'd'](_0x53fcf0), _0x124f5a[_0x255948(0x99)] = _0x124f5a[_0x255948(0xa1) + 'ht'];
+        const _0x5b5bcd = await _0x55e61a[_0x255948(0xdd)](fetch, _0x55e61a[_0x255948(0xe4)](_0x55e61a[_0x255948(0xd3)], new URLSearchParams({ 'pergunta': _0x36a1f1 })), {
+                'method': _0x55e61a[_0x255948(0xa2)],
+                'headers': {
+                    'authorization': _0x55e61a[_0x255948(0x77)],
+                    'Content-Type': _0x55e61a[_0x255948(0x91)]
+                }
+            }), _0x3f2a59 = await _0x5b5bcd[_0x255948(0xeb)]();
+        _0x124f5a[_0x255948(0xc7) + 'd'](_0x53fcf0);
+        const _0x311af0 = document[_0x255948(0xef) + _0x255948(0xaa)](_0x55e61a[_0x255948(0x7c)]);
+        _0x311af0[_0x255948(0xa6)][_0x255948(0xe7)](_0x55e61a[_0x255948(0xe8)]);
+        let _0x48d94d = _0x255948(0xaf) + _0x255948(0x70) + _0x255948(0xc4) + _0x255948(0x8a) + _0x255948(0x80) + _0x255948(0x9a) + _0x255948(0xbb) + _0x255948(0x93) + _0x255948(0xa9) + _0x255948(0xd5) + _0x255948(0xb8) + _0x255948(0xbd) + _0x255948(0x96) + _0x255948(0xc9) + _0x255948(0xa7) + _0x255948(0xee) + _0x255948(0xdf) + _0x255948(0xd9) + _0x255948(0x73) + _0x255948(0x7d) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xcf) + _0x255948(0xe3) + _0x255948(0xe5) + _0x3f2a59[_0x255948(0xf0)] + _0x255948(0xde);
+        if (_0x55e61a[_0x255948(0xd8)](isCodeResponse, _0x3f2a59[_0x255948(0xf0)])) {
+            const _0x396c7e = _0x55e61a[_0x255948(0xf3)](extractCode, _0x3f2a59[_0x255948(0xf0)]);
+            _0x48d94d = _0x255948(0xaf) + _0x255948(0x70) + _0x255948(0xc4) + _0x255948(0xc2) + _0x255948(0xae) + _0x255948(0x6f) + _0x255948(0x94) + _0x255948(0xed) + _0x255948(0xce) + _0x255948(0xc8) + _0x255948(0x76) + _0x255948(0xc6) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xb5) + _0x255948(0x9e) + _0x255948(0x95) + _0x3f2a59[_0x255948(0xf0)] + (_0x255948(0x72) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xec)) + _0x396c7e + (_0x255948(0x83) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0x7e) + _0x255948(0xd6) + _0x255948(0xf1) + _0x255948(0xc3) + _0x255948(0x92) + _0x255948(0xc1) + _0x255948(0x78)) + _0x396c7e + (_0x255948(0x90) + _0x255948(0xe6) + _0x255948(0xbf) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xd2) + _0x255948(0xab) + _0x255948(0xac));
+        }
+        _0x311af0[_0x255948(0xbe)] = _0x48d94d, _0x124f5a[_0x255948(0xca) + 'd'](_0x311af0), _0x124f5a[_0x255948(0x99)] = _0x124f5a[_0x255948(0xa1) + 'ht'];
+    }
+}
+function isCodeResponse(_0x4d2ccd) {
+    const _0x54cea8 = _0x1df4, _0x4e67ac = {
+            'vPgKM': _0x54cea8(0xda),
+            'ifGcq': _0x54cea8(0xe2)
+        };
+    return _0x4d2ccd[_0x54cea8(0xb3)](_0x4e67ac[_0x54cea8(0xa8)]) || _0x4d2ccd[_0x54cea8(0xb3)](_0x4e67ac[_0x54cea8(0x85)]);
+}
+function extractCode(_0x4da3b5) {
+    const _0x553f2f = _0x1df4, _0x51af9b = _0x4da3b5[_0x553f2f(0x89)](/```([^```]+)```|<code>([^<]+)<\/code>/);
+    return _0x51af9b ? _0x51af9b[-0x105f + 0xc78 + 0x7d * 0x8] || _0x51af9b[-0x1a46 * 0x1 + 0x1 * -0x240a + -0x2 * -0x1f29] : '';
+}
+function copyToClipboard(_0x424952) {
+    const _0x5df266 = _0x1df4, _0x5a1aa9 = {
+            'WcaHu': function (_0x10c9ff, _0x5d4ec3) {
+                return _0x10c9ff(_0x5d4ec3);
+            },
+            'wqnDf': _0x5df266(0xb7),
+            'wqLQH': _0x5df266(0xe0)
+        };
+    navigator[_0x5df266(0x8e)][_0x5df266(0xb1)](_0x424952)[_0x5df266(0x8c)](() => {
+        const _0x5c0591 = _0x5df266;
+        _0x5a1aa9[_0x5c0591(0x88)](alert, _0x5a1aa9[_0x5c0591(0x8d)]);
+    })[_0x5df266(0xea)](_0x59c577 => {
+        const _0x360f25 = _0x5df266;
+        console[_0x360f25(0x97)](_0x5a1aa9[_0x360f25(0xb0)], _0x59c577);
+    });
+}
+    </script>
+</body>
+</html>
